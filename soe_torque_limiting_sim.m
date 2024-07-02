@@ -8,9 +8,9 @@ FUNC = 1;
 DESC = 2;
 
 % filename of output from ryan's sim
-INPUT_FILENAME = "csvs out/torquevals_208_80kmh_57kw";
-OPTIMUMLAP_INPUT_FILENAME = "csvs in/MV208_80kmh_57kw.csv";
-TEST_DESC = "MV208_80kmh_57kw";
+INPUT_FILENAME = "csvs out/torquevals_228_80kmh_57kw";
+OPTIMUMLAP_INPUT_FILENAME = "csvs in/MV228_80kmh_57kw.csv";
+TEST_DESC = "MV228_80kmh_57kw";
 
 % total energy in battery pack
 TOTAL_KJ = 22394.88;
