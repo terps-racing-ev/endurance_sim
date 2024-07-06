@@ -14,7 +14,7 @@ TEST_DESC = "MV228_80kmh_57kw";
 
 % total energy in battery pack
 TOTAL_KJ = 22394.88;
-MAX_LAPS = 64;
+MAX_LAPS = 22;
 
 % vehicle characteristics
 metadata = [readcell(OPTIMUMLAP_INPUT_FILENAME,"Range", [9,1,28,2]); ...
