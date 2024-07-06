@@ -7,6 +7,9 @@
 FUNC = 1;
 DESC = 2;
 
+% save the top x runs
+NUM_RUNS_SAVED = 2;
+
 % filename of output from ryan's sim
 INPUT_FILENAME = "csvs out/torquevals_228_80kmh_57kw";
 OPTIMUMLAP_INPUT_FILENAME = "csvs in/MV228_80kmh_57kw.csv";
@@ -56,6 +59,9 @@ MIN_VELOCITY = 0.1;
 % stop run once it dips below this voltage
 MIN_VOLTAGE = 307;
 
+% only considerruns with this many laps to save
+MIN_LAPS_THRESHHOLD = MAX_LAPS;
+
 
 % list of soe_to_torque function handles to test
 soe_to_torque_limit_functions = get_soe_torque_functions();
@@ -73,31 +79,51 @@ reference_lap_brake_pos = table2array(rawin(:,5));
 num_segments_in_lap = length(reference_lap_elapsed_time);
 
 % velocities from this sim at the end of each segment
-segment_end_velocities = zeros(num_functions, num_segments_in_lap * MAX_LAPS);
+segment_end_velocities = zeros(1, num_segments_in_lap * MAX_LAPS);
 
 % energy used over each segment (NOT CUMULATIVE)
-segment_end_energy_used = zeros(num_functions, num_segments_in_lap * MAX_LAPS);
+segment_end_energy_used = zeros(1, num_segments_in_lap * MAX_LAPS);
 
 % cumulative energy used by this point in the run
-segment_end_cumulative_energy_used = zeros(num_functions, num_segments_in_lap * MAX_LAPS);
+segment_end_cumulative_energy_used = zeros(1, num_segments_in_lap * MAX_LAPS);
 
 % torque used at the start of this segment
-segment_torque_used = zeros(num_functions, num_segments_in_lap * MAX_LAPS);
+segment_torque_used = zeros(1, num_segments_in_lap * MAX_LAPS);
 
 % current discharged in each segment
-segment_discharge = zeros(num_functions, num_segments_in_lap * MAX_LAPS);
+segment_discharge = zeros(1, num_segments_in_lap * MAX_LAPS);
 
 % power used from battery pack in each segment
-segment_power_drawn_from_battery = zeros(num_functions, num_segments_in_lap * MAX_LAPS);
+segment_power_drawn_from_battery = zeros(1, num_segments_in_lap * MAX_LAPS);
 
 % voltage in battery pack at each segment
-segment_voltage = zeros(num_functions, num_segments_in_lap * MAX_LAPS);
+segment_voltage = zeros(1, num_segments_in_lap * MAX_LAPS);
 
 % time taken in each segment
-time_taken_each_segment = zeros(num_functions, num_segments_in_lap * MAX_LAPS);
+time_taken_each_segment = zeros(1, num_segments_in_lap * MAX_LAPS);
 
 % time taken in each lap
-time_taken_each_lap = zeros(num_functions, MAX_LAPS);
+time_taken_each_lap = zeros(1, MAX_LAPS);
+
+% number of data channels to save in top runs array
+NUM_DATA_CHANNELS = 12;
+
+% top x runs
+top_runs = initialize_top_runs_array(NUM_RUNS_SAVED, NUM_DATA_CHANNELS);
+% indices for top x runs cell array
+AVG_LAP_TIME = 1;
+END_VELOCITIES = 2;
+ENERGY_USED = 3;
+CUMULATIVE_ENERGY_USED = 4;
+TORQUE = 5;
+DISCHARGE = 6;
+POWER_DRAWN_FROM_BATTERY = 7;
+VOLTAGE = 8;
+TIME_TAKEN_EACH_SEGMENT = 9;
+TIME_TAKEN_EACH_LAP = 10;
+DESCRIPTION = 11;
+NUM_LAPS_COMPLETED = 12;
+
 
 % whether a folder has been made for this run of the sim
 folder_made = false;
@@ -137,6 +163,20 @@ for i = 1:num_functions
 
     capacity = 0;
 
+    segment_end_velocities = zeros(1, num_segments_in_lap * MAX_LAPS);
+
+    % zero out everything
+    segment_end_velocities = zeros(1, num_segments_in_lap * MAX_LAPS);
+    segment_end_energy_used = zeros(1, num_segments_in_lap * MAX_LAPS);
+    segment_end_cumulative_energy_used = zeros(1, num_segments_in_lap * MAX_LAPS);
+    segment_torque_used = zeros(1, num_segments_in_lap * MAX_LAPS);
+    segment_discharge = zeros(1, num_segments_in_lap * MAX_LAPS);
+    segment_power_drawn_from_battery = zeros(1, num_segments_in_lap * MAX_LAPS);
+    segment_voltage = zeros(1, num_segments_in_lap * MAX_LAPS);
+    time_taken_each_segment = zeros(1, num_segments_in_lap * MAX_LAPS);
+    time_taken_each_lap = zeros(1, MAX_LAPS);
+
+
     tic
     while do_continue && current_lap_number <= MAX_LAPS
         energy_used_this_segment = 0;
@@ -145,14 +185,14 @@ for i = 1:num_functions
         if current_segment == 1
             last_velocity = reference_lap_segment_end_velocity(1);
         else
-            last_velocity = segment_end_velocities(i, current_segment - 1);
+            last_velocity = segment_end_velocities(1, current_segment - 1);
         end
 
         % approximate the time taken in this segment by dividing 
         % distance of segment by velocity at end of last segment (inaccurate but
         % not by much)
         time_taken_this_segment = SEGMENT_DIST / last_velocity;
-        time_taken_each_segment(i, current_segment) = time_taken_this_segment;
+        time_taken_each_segment(1, current_segment) = time_taken_this_segment;
 
         % increase current lap time
         current_lap_time = current_lap_time + time_taken_this_segment;
@@ -194,12 +234,12 @@ for i = 1:num_functions
 
             % no energy has been used from the battery pack (soe will
             % not change)
-            segment_end_velocities(i, current_segment) = this_velocity_provisional;
-            segment_end_energy_used(i, current_segment) = 0;
+            segment_end_velocities(1, current_segment) = this_velocity_provisional;
+            segment_end_energy_used(1, current_segment) = 0;
 
-            segment_torque_used(i, current_segment) = 0;
+            segment_torque_used(1, current_segment) = 0;
 
-            segment_power_drawn_from_battery(i, current_segment) = 0;
+            segment_power_drawn_from_battery(1, current_segment) = 0;
         else
             torque_limit = soe_to_torque_function(current_energy / TOTAL_KJ);
 
@@ -209,7 +249,7 @@ for i = 1:num_functions
                 torque = torque_limit;
             end
 
-            segment_torque_used(i, current_segment) = torque;
+            segment_torque_used(1, current_segment) = torque;
 
             % aero and rolling loss in J
             aero_loss = SEGMENT_DIST * 0.5 * RHO * CD * FRONTAL_AREA * last_velocity^2;
@@ -237,33 +277,33 @@ for i = 1:num_functions
             
             this_velocity = sqrt(2 * this_kinetic_energy / MASS);
 
-            segment_end_velocities(i, current_segment) = this_velocity;
+            segment_end_velocities(1, current_segment) = this_velocity;
 
             % energy consumed from battery is affected by motor and
             % inverter efficiency
             [motor_eff,inv_eff] = efficiency_calcs(torque,motor_rpm);
             energy_used_this_segment = (rotational_energy / motor_eff) / inv_eff;
 
-            segment_power_drawn_from_battery(i, current_segment) = power / motor_eff / inv_eff;
+            segment_power_drawn_from_battery(1, current_segment) = power / motor_eff / inv_eff;
 
-            segment_end_energy_used(i, current_segment) = energy_used_this_segment;
+            segment_end_energy_used(1, current_segment) = energy_used_this_segment;
 
             % subtract energy used from current energy
             current_energy = current_energy - energy_used_this_segment;
             
         end
+        
+        % if segment_power_drawn_from_battery(1, current_segment) ~= 0
+        %     segment_discharge(1, current_segment) = subs(func,{c,pow},{capacity,segment_power_drawn_from_battery(i, current_segment)});
+        %     segment_voltage(1, current_segment) = segment_power_drawn_from_battery(i, current_segment)/segment_discharge(i, current_segment);
+        % else
+        %     segment_discharge(1, current_segment) = 0;
+        %     segment_voltage(1, current_segment) = segment_voltage(1, current_segment - 1);
+        % end
+        % cap_used = segment_discharge(1, current_segment)*time_taken_this_segment/3600;
+        % capacity = capacity + cap_used;
 
-        if segment_power_drawn_from_battery(i, current_segment) ~= 0
-            segment_discharge(i, current_segment) = subs(func,{c,pow},{capacity,segment_power_drawn_from_battery(i, current_segment)});
-            segment_voltage(i, current_segment) = segment_power_drawn_from_battery(i, current_segment)/segment_discharge(i, current_segment);
-        else
-            segment_discharge(i, current_segment) = 0;
-            segment_voltage(i, current_segment) = segment_voltage(i, current_segment - 1);
-        end
-        cap_used = segment_discharge(i, current_segment)*time_taken_this_segment/3600;
-        capacity = capacity + cap_used;
-
-        segment_end_cumulative_energy_used(i, current_segment) = TOTAL_KJ - current_energy;
+        segment_end_cumulative_energy_used(1, current_segment) = TOTAL_KJ - current_energy;
 
         % increment current_segment_on_track
         current_segment_on_track = current_segment_on_track + 1;
@@ -273,7 +313,7 @@ for i = 1:num_functions
             current_segment_on_track = 1;
 
             % record current lap time
-            time_taken_each_lap(i, current_lap_number) = current_lap_time;
+            time_taken_each_lap(1, current_lap_number) = current_lap_time;
 
             % reset lap time
             current_lap_time = 0;
@@ -291,58 +331,92 @@ for i = 1:num_functions
         end
 
         % or once we come to a stop
-        if segment_end_velocities(i, current_segment - 1) < MIN_VELOCITY
+        if segment_end_velocities(1, current_segment - 1) < MIN_VELOCITY
             do_continue = false;
         end
 
-        if segment_voltage(i, current_segment - 1) < MIN_VOLTAGE
-            do_continue = false;
-        end
+        % if segment_voltage(1, current_segment - 1) < MIN_VOLTAGE
+        %     do_continue = false;
+        % end
     end
     toc
 
-    % M = ["torque", "vel_end_of_step (m/s)", "time elapsed at end of segment (s)", "energy_used_per_step (J)", "energy_used_cumulative (J)"; segment_torque_used(i,:)', segment_end_velocities(i,:)', time_taken_each_segment(i, :)', segment_end_energy_used(i, :)', segment_end_cumulative_energy_used(i,:)'];
+    % if the above while loop ended because we completed the run
+    % or if we failed the run but ended up completing a minimum number of
+    % laps
+    if do_continue || current_lap_number > MIN_LAPS_THRESHHOLD
+        average_lap_time = mean(time_taken_each_lap(1, :));
 
-    M = [segment_torque_used(i,:)', segment_end_velocities(i,:)', time_taken_each_segment(i, :)', segment_end_energy_used(i, :)', segment_end_cumulative_energy_used(i,:)', segment_voltage(i, :)', segment_power_drawn_from_battery(i, :)'];
-    M_titles = ["torque", "vel_end_of_step (m/s)", "time elapsed at end of segment (s)", "energy_used_per_step (kJ)", "energy_used_cumulative (kJ)", "voltage (V)", "power drawn from battery (W)"];
-    
-    % writematrix(M,function_desc + ".csv")
+        % find the run with the slowest lap time and replace it with this
+        % run if this run is faster
+        max_lap_time = 0;
+        max_lap_time_index = 1;
+        for k = 1:NUM_RUNS_SAVED
+            if top_runs{k, AVG_LAP_TIME} > max_lap_time
+                max_lap_time = top_runs{k, AVG_LAP_TIME};
+                max_lap_time_index = k;
+            end
+        end
 
-    % number of laps completed (including fractional lap)
-    laps_completed = (current_lap_number - 1) + (current_segment_on_track / num_segments_in_lap);
+        if max_lap_time > average_lap_time
+            top_runs{max_lap_time_index, AVG_LAP_TIME} = average_lap_time;
 
-    % save
-    filename = function_desc + ".xlsx";
-
-    % make a folder to save the sim results if one hasn't been made yet
-
-    if folder_made == false
-        d = string(datetime('now').Day);
-        m = string(datetime('now').Month);
-        y = string(datetime('now').Year);
-        h = string(datetime('now').Hour);
-        min = string(datetime('now').Minute);
-
-        folder_name = "tl_sim_results_" + TEST_DESC + "_" + m + "." + d + "." + y + "-" + h + "." + min;
-        mkdir(folder_name);
-        folder_made = true;
+            top_runs{max_lap_time_index, END_VELOCITIES} = segment_end_velocities(1,:);
+            top_runs{max_lap_time_index, ENERGY_USED} = segment_end_energy_used(1,:);
+            top_runs{max_lap_time_index, CUMULATIVE_ENERGY_USED} = segment_end_cumulative_energy_used(1,:);
+            top_runs{max_lap_time_index, DISCHARGE} = segment_discharge(1,:);
+            top_runs{max_lap_time_index, TORQUE} = segment_torque_used(1,:);
+            top_runs{max_lap_time_index, POWER_DRAWN_FROM_BATTERY} = segment_power_drawn_from_battery(1,:);
+            top_runs{max_lap_time_index, VOLTAGE} = segment_voltage(1,:);
+            top_runs{max_lap_time_index, TIME_TAKEN_EACH_SEGMENT} = time_taken_each_segment(1,:);
+            top_runs{max_lap_time_index, TIME_TAKEN_EACH_LAP} = time_taken_each_lap(1,:);
+            top_runs{max_lap_time_index, DESCRIPTION} = function_desc(1,:);
+            top_runs{max_lap_time_index, NUM_LAPS_COMPLETED} = current_lap_number - 1;
+        end
     end
-
-    filename = folder_name + "/" + function_desc + ".xlsx";
-
-    N = {"Function used", function_desc; ...
-         "Number of laps completed", laps_completed};
-
-    L = {"Time taken each lap"};
-    K = [(1:MAX_LAPS)', time_taken_each_lap(i,:)'];
-
-    writecell(N, filename, 'Sheet', "Summary", 'Range', 'A1');
-    writecell(L, filename, 'Sheet', "Summary", 'Range', 'A5');
-    writematrix(K, filename, 'Sheet', 'Summary', 'Range', 'A6');
-
-    writematrix(M_titles, filename, 'Sheet', 'Segment Values', 'Range', 'A1');
-    writematrix(M, filename, 'Sheet', 'Segment Values', 'Range', 'A2');
-
-
     
+end
+
+
+% save the top runs into excel spreadsheets
+for i = 1:NUM_RUNS_SAVED
+    if top_runs{i, AVG_LAP_TIME} < 1000
+        M = [top_runs{i, TORQUE}', top_runs{i, END_VELOCITIES}', top_runs{i, TIME_TAKEN_EACH_SEGMENT}', top_runs{i, ENERGY_USED}', top_runs{i, END_VELOCITIES}', top_runs{i, VOLTAGE}', top_runs{i, POWER_DRAWN_FROM_BATTERY}'];
+        M_titles = ["torque", "vel_end_of_step (m/s)", "time elapsed at end of segment (s)", "energy_used_per_step (kJ)", "energy_used_cumulative (kJ)", "voltage (V)", "power drawn from battery (W)"];
+
+
+
+        % number of laps completed (including fractional lap)
+        % laps_completed = (current_lap_number - 1) + (current_segment_on_track / num_segments_in_lap);
+
+        % make a folder to save the sim results if one hasn't been made yet
+
+        if folder_made == false
+            d = string(datetime('now').Day);
+            m = string(datetime('now').Month);
+            y = string(datetime('now').Year);
+            h = string(datetime('now').Hour);
+            min = string(datetime('now').Minute);
+
+            folder_name = "tl_sim_results_" + TEST_DESC + "_" + m + "." + d + "." + y + "-" + h + "." + min;
+            mkdir(folder_name);
+            folder_made = true;
+        end
+
+        filename = folder_name + "/" + top_runs{i, DESCRIPTION} + ".xlsx";
+
+        N = {"Function used", top_runs{i, DESCRIPTION}; ...
+            "Average Lap Time", top_runs{i, AVG_LAP_TIME}; ...
+            "Number of laps completed", top_runs{i, NUM_LAPS_COMPLETED}};
+
+        L = {"Time taken each lap"};
+        K = [(1:MAX_LAPS)', top_runs{i, TIME_TAKEN_EACH_LAP}'];
+
+        writecell(N, filename, 'Sheet', "Summary", 'Range', 'A1');
+        writecell(L, filename, 'Sheet', "Summary", 'Range', 'A6');
+        writematrix(K, filename, 'Sheet', 'Summary', 'Range', 'A7');
+
+        writematrix(M_titles, filename, 'Sheet', 'Segment Values', 'Range', 'A1');
+        writematrix(M, filename, 'Sheet', 'Segment Values', 'Range', 'A2');
+    end
 end
