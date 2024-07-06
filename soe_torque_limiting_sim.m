@@ -50,7 +50,11 @@ ROLLING_RADIUS = metadata(28);
 % drivetrain efficiency
 DRIVETRAIN_EFFICIENCY = 0.95;
 
+% stop run once it dips below this velocity
 MIN_VELOCITY = 0.1;
+
+% stop run once it dips below this voltage
+MIN_VOLTAGE = 307;
 
 
 % list of soe_to_torque function handles to test
@@ -288,6 +292,10 @@ for i = 1:num_functions
 
         % or once we come to a stop
         if segment_end_velocities(i, current_segment - 1) < MIN_VELOCITY
+            do_continue = false;
+        end
+
+        if segment_voltage(i, current_segment - 1) < MIN_VOLTAGE
             do_continue = false;
         end
     end
