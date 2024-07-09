@@ -1,7 +1,8 @@
 tic
 numruns = 1;
 addpath("csvs in\");
-fname = "MV208_80kmh_57kw.csv";
+fname = "228_80kmh_40kw_2024.csv";
+fout = "csvs out/torquevals_" + fname;
 %used to index across multiple optimum lap runs
 i = 1;
 %est 4.5kwh
@@ -45,7 +46,7 @@ long_acc = table2array(rawin(:,5));
 %mass in kg
 mass = metadata(22);
 %rolling resistance
-rr = metadata(37); radius = metadata(28);
+rr = 0.015; radius = metadata(28);
 
 %air density (kg/m^3) coef drag
 rho = metadata(29); cd = metadata(23);  
@@ -76,7 +77,7 @@ for z = 1:numruns
         %aero energy lost, kJ (+)
         AE = dist * 0.5 * rho * cd * frontal_area * last_velocity^2 / 1000;
         %downforce -- used in calculating rolling resistance, N (+)
-        DF = 0.5*rho*clift*frontal_area*last_velocity^2;
+        DF = 0.5*rho*clift*frontal_area*(last_velocity^2);
         %rolling resistance energy lost, kJ (+)
         RE = dist*rr*(DF+mass*9.81)/1000;
             
@@ -143,9 +144,9 @@ title("Gear Ratio vs. Laptime (Top Speed normalized)");
 xlabel("Gear Ratio"); ylabel("Laptime (s)"); axis tight
 toc
 %}
-disp(min(voltage(voltage >0)))
+%disp(min(voltage(voltage >0)))
 M = ["time", "torque", "rpm", "vel", "brake_pos"; time, torque', rpm, vel, brake_pos];
 
-writematrix(M,"torquevals_208_80kmh_57kw.csv")
+writematrix(M,fout)
 
 toc

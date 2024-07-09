@@ -11,9 +11,9 @@ DESC = 2;
 NUM_RUNS_SAVED = 2;
 
 % filename of output from ryan's sim
-INPUT_FILENAME = "csvs out/torquevals_228_80kmh_57kw";
-OPTIMUMLAP_INPUT_FILENAME = "csvs in/MV228_80kmh_57kw.csv";
-TEST_DESC = "MV228_80kmh_57kw";
+INPUT_FILENAME = "csvs out/torquevals_208_80kmh_40kw_2024.csv";
+OPTIMUMLAP_INPUT_FILENAME = "csvs in/208_80kmh_40kw_2024.csv";
+TEST_DESC = "208_80kmh_40kw_2024";
 
 % total energy in battery pack
 TOTAL_KJ = 22394.88;
@@ -40,7 +40,7 @@ CLIFT = metadata(24);
 FRONTAL_AREA = metadata(26);
 
 % rolling drag 
-RR = metadata(37);
+RR = .015;
 
 optimumlap_rawin = readcell(OPTIMUMLAP_INPUT_FILENAME, "Range", [70, 7, 71, 8]);
 
@@ -253,7 +253,7 @@ for i = 1:num_functions
 
             % aero and rolling loss in J
             aero_loss = SEGMENT_DIST * 0.5 * RHO * CD * FRONTAL_AREA * last_velocity^2;
-            downforce = 0.5 * RHO * CLIFT * FRONTAL_AREA * last_velocity^2;
+            downforce = (0.5 * RHO * CLIFT * FRONTAL_AREA * last_velocity^2);
             rolling_loss = SEGMENT_DIST * RR * (downforce + MASS * 9.81);
 
             % figure out motor velocity (rad/s)
