@@ -11,9 +11,9 @@ DESC = 2;
 NUM_RUNS_SAVED = 5;
 
 % filename of output from ryan's sim
-INPUT_FILENAME = "csvs out/torquevals_208_80kmh_40kw_2024";
-OPTIMUMLAP_INPUT_FILENAME = "csvs in/208_80kmh_40kw_2024";
-TEST_DESC = "208_80kmh_40kw_2024";
+INPUT_FILENAME = "csvs out/torquevals_208_80kmh_57kw_2024";
+OPTIMUMLAP_INPUT_FILENAME = "csvs in/208_80kmh_57kw_2024";
+TEST_DESC = "208_80kmh_57kw_2024";
 
 % total energy in battery pack
 TOTAL_KJ = 22394.88;

@@ -1,7 +1,7 @@
 tic
 numruns = 1;
 addpath("csvs in\");
-fname = "228_80kmh_40kw_2024.csv";
+fname = "208_80kmh_57kw_2024.csv";
 fout = "csvs out/torquevals_" + fname;
 %used to index across multiple optimum lap runs
 i = 1;
