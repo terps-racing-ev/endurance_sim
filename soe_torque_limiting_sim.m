@@ -8,11 +8,11 @@ FUNC = 1;
 DESC = 2;
 
 % save the top x runs
-NUM_RUNS_SAVED = 2;
+NUM_RUNS_SAVED = 5;
 
 % filename of output from ryan's sim
-INPUT_FILENAME = "csvs out/torquevals_208_80kmh_40kw_2024.csv";
-OPTIMUMLAP_INPUT_FILENAME = "csvs in/208_80kmh_40kw_2024.csv";
+INPUT_FILENAME = "csvs out/torquevals_208_80kmh_40kw_2024";
+OPTIMUMLAP_INPUT_FILENAME = "csvs in/208_80kmh_40kw_2024";
 TEST_DESC = "208_80kmh_40kw_2024";
 
 % total energy in battery pack
@@ -377,11 +377,12 @@ for i = 1:num_functions
     
 end
 
-
+"Saving Top Runs..."
 % save the top runs into excel spreadsheets
 for i = 1:NUM_RUNS_SAVED
     if top_runs{i, AVG_LAP_TIME} < 1000
-        M = [top_runs{i, TORQUE}', top_runs{i, END_VELOCITIES}', top_runs{i, TIME_TAKEN_EACH_SEGMENT}', top_runs{i, ENERGY_USED}', top_runs{i, END_VELOCITIES}', top_runs{i, VOLTAGE}', top_runs{i, POWER_DRAWN_FROM_BATTERY}'];
+        top_runs{i, DESCRIPTION}
+        M = [top_runs{i, TORQUE}', top_runs{i, END_VELOCITIES}', top_runs{i, TIME_TAKEN_EACH_SEGMENT}', top_runs{i, ENERGY_USED}', top_runs{i, CUMULATIVE_ENERGY_USED}', top_runs{i, VOLTAGE}', top_runs{i, POWER_DRAWN_FROM_BATTERY}'];
         M_titles = ["torque", "vel_end_of_step (m/s)", "time elapsed at end of segment (s)", "energy_used_per_step (kJ)", "energy_used_cumulative (kJ)", "voltage (V)", "power drawn from battery (W)"];
 
 
