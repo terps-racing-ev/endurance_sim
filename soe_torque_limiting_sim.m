@@ -1,4 +1,4 @@
- % Lap Time sim where a torque limit is set by SoE
+% Lap Time sim where a torque limit is set by SoE
 % Assuming you have the output of gr_vs_power_out (Ryan's sim)
 % Yasadu De Silva
 
@@ -11,9 +11,9 @@ DESC = 2;
 NUM_RUNS_SAVED = 5;
 
 % filename of output from ryan's sim
-INPUT_FILENAME = "csvs out/torquevals_208_80kmh_57kw_2024";
-OPTIMUMLAP_INPUT_FILENAME = "csvs in/208_80kmh_57kw_2024";
-TEST_DESC = "208_80kmh_57kw_2024";
+INPUT_FILENAME = "csvs out/torquevals_228_80kmh_57kw_2024";
+OPTIMUMLAP_INPUT_FILENAME = "csvs in/228_80kmh_57kw_2024";
+TEST_DESC = "228_80kmh_57kw_2024";
 
 % total energy in battery pack
 TOTAL_KJ = 22394.88;
