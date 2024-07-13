@@ -2,6 +2,7 @@
 % Assuming you have the output of gr_vs_power_out (Ryan's sim)
 % Yasadu De Silva
 
+tic
 % constants
 % indices for function array
 FUNC = 1;
@@ -16,7 +17,7 @@ OPTIMUMLAP_INPUT_FILENAME = "csvs in/228_80kmh_57kw_2024";
 TEST_DESC = "228_80kmh_57kw_2024";
 
 % total energy in battery pack
-TOTAL_KJ = 22394.88;
+TOTAL_KJ = 25194.24;
 MAX_LAPS = 22;
 
 % vehicle characteristics
@@ -177,7 +178,6 @@ for i = 1:num_functions
     time_taken_each_lap = zeros(1, MAX_LAPS);
 
 
-    tic
     while do_continue && current_lap_number <= MAX_LAPS
         energy_used_this_segment = 0;
         
@@ -241,7 +241,7 @@ for i = 1:num_functions
 
             segment_power_drawn_from_battery(1, current_segment) = 0;
         else
-            torque_limit = soe_to_torque_function(current_energy / TOTAL_KJ);
+            torque_limit = get_torque_limit(soe_to_torque_function, current_energy / TOTAL_KJ);
 
             % set torque based on limit and requested torque
             torque = torque_request;
@@ -339,7 +339,6 @@ for i = 1:num_functions
         %     do_continue = false;
         % end
     end
-    toc
 
     % if the above while loop ended because we completed the run
     % or if we failed the run but ended up completing a minimum number of
@@ -376,6 +375,8 @@ for i = 1:num_functions
     end
     
 end
+
+toc
 
 "Saving Top Runs..."
 % save the top runs into excel spreadsheets

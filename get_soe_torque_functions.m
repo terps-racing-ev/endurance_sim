@@ -5,17 +5,30 @@ function ret = get_soe_torque_functions()
     FUNC = 1;
     DESC = 2;
 
-    NUM_FUNCTIONS = 3;
+    NUM_COEFFICIENTS = 70;
+    NUM_CONSTANTS = 200;
+
+    NUM_FUNCTIONS = NUM_COEFFICIENTS * NUM_CONSTANTS;
+
+    LOWER_BOUND_COEFFICIENT = 50;
+    UPPER_BOUND_COEFFICIENT = LOWER_BOUND_COEFFICIENT + NUM_COEFFICIENTS - 1;
+
+    LOWER_BOUND_CONSTANT = 0;
+    UPPER_BOUND_CONSTANT = LOWER_BOUND_CONSTANT + NUM_CONSTANTS - 1;
 
     % assume we get soe as a decimal number <= 1
     ret = cell(NUM_FUNCTIONS, 2);
 
-    ret{1, FUNC} = @(x) 1000;
-    ret{1, DESC} = "no limit";
-
-    ret{2, FUNC} = @(x) x * 100;
-    ret{2, DESC} = "soe percent as torque limit";
-
-    ret{3, FUNC} = @(x) x * 50;
-    ret{3, DESC} = "half of soe percent as torque limit";
+    % each function is a n x 3 matrix describing a piecewise linear function
+    % the first element of each row is the upper bound for the soe that the 
+    % piece applies to. The second element of each row is the coefficient
+    % for that piece, and the third is the constant.
+    k = 1;
+    for i = LOWER_BOUND_COEFFICIENT:UPPER_BOUND_COEFFICIENT
+        for j = LOWER_BOUND_CONSTANT:UPPER_BOUND_CONSTANT
+            ret{k, FUNC} = [1, i, j];
+            ret{k, DESC} = string(i) + " x soe + " + string(j);
+            k = k + 1;
+        end
+    end
 end
