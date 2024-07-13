@@ -18,6 +18,11 @@ TEST_DESC = "228_80kmh_57kw_2024";
 
 % total energy in battery pack
 TOTAL_KJ = 25194.24;
+
+MIN_ENERGY_LEFT_PERCENTAGE = 10;
+
+MIN_KJ_LEFT = (MIN_ENERGY_LEFT_PERCENTAGE / 100) * TOTAL_KJ;
+
 MAX_LAPS = 22;
 
 % vehicle characteristics
@@ -326,7 +331,7 @@ for i = 1:num_functions
         current_segment = current_segment + 1;
 
         % stop the lap once we run out of energy
-        if current_energy <= 0
+        if current_energy <= MIN_KJ_LEFT
             do_continue = false;
         end
 
